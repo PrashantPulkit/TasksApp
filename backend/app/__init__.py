@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flasgger import Swagger
 from .config import Config
-
+from flask_cors import CORS
 db = SQLAlchemy()
 jwt = JWTManager()
 swagger = Swagger()
@@ -25,5 +25,5 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
     return app

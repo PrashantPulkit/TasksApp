@@ -12,6 +12,30 @@ login_schema = LoginSchema()
 
 @auth_bp.route("/register", methods=["POST"])
 def register():
+    """
+Register User
+---
+tags:
+  - Auth
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+responses:
+  201:
+    description: User created
+"""
     try:
         data = register_schema.load(request.json)
     except ValidationError as err:
@@ -26,6 +50,26 @@ def register():
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
+    """
+Login User
+---
+tags:
+  - Auth
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+responses:
+  200:
+    description: JWT token returned
+"""
     try:
         data = login_schema.load(request.json)
     except ValidationError as err:
@@ -35,7 +79,6 @@ def login():
 
     if not user:
         return jsonify({"message": "Invalid credentials"}), 401
-
-    token = create_access_token(identity=user.id, additional_claims={"role": user.role})
+    token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
 
     return jsonify({"access_token": token})

@@ -5,3 +5,4 @@ flask_jwt_extended
 werkzeug
 marshmallow
 flasgger
+flask-cors
