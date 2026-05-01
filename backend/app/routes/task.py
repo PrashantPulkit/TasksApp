@@ -1,10 +1,14 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from marshmallow import ValidationError
 from ..models.task import Task
 from ..services.task_service import TaskService
+from ..schemas.task_schema import TaskSchema
 from ..utils.decorators import role_required
 
 tasks_bp = Blueprint("tasks", __name__)
+
+task_schema = TaskSchema()
 
 
 @tasks_bp.route("/", methods=["GET"])
@@ -19,9 +23,12 @@ def get_tasks():
 @tasks_bp.route("/", methods=["POST"])
 @jwt_required()
 def create_task():
-    data = request.json
-    user_id = get_jwt_identity()
+    try:
+        data = task_schema.load(request.json)
+    except ValidationError as err:
+        return jsonify(err.messages), 400
 
+    user_id = get_jwt_identity()
     TaskService.create_task(data, user_id)
     return jsonify({"message": "Task created"}), 201
 
@@ -35,7 +42,11 @@ def update_task(id):
     if task.user_id != user_id:
         return jsonify({"message": "Forbidden"}), 403
 
-    data = request.json
+    try:
+        data = task_schema.load(request.json, partial=True)
+    except ValidationError as err:
+        return jsonify(err.messages), 400
+
     TaskService.update_task(task, data)
     return jsonify({"message": "Updated"})
 
@@ -47,3 +58,4 @@ def delete_task(id):
     task = Task.query.get_or_404(id)
     TaskService.delete_task(task)
     return jsonify({"message": "Deleted"})
+

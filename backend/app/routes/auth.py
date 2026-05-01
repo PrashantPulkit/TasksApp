@@ -1,16 +1,21 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token
+from marshmallow import ValidationError
 from ..services.auth_service import AuthService
+from ..schemas.user_schema import RegisterSchema, LoginSchema
 
 auth_bp = Blueprint("auth", __name__)
+
+register_schema = RegisterSchema()
+login_schema = LoginSchema()
 
 
 @auth_bp.route("/register", methods=["POST"])
 def register():
-    data = request.json
-
-    if not data.get("email") or not data.get("password"):
-        return jsonify({"message": "Invalid input"}), 400
+    try:
+        data = register_schema.load(request.json)
+    except ValidationError as err:
+        return jsonify(err.messages), 400
 
     user, error = AuthService.register(data)
     if error:
@@ -21,7 +26,11 @@ def register():
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
-    data = request.json
+    try:
+        data = login_schema.load(request.json)
+    except ValidationError as err:
+        return jsonify(err.messages), 400
+
     user = AuthService.authenticate(data.get("email"), data.get("password"))
 
     if not user:

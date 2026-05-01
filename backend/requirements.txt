@@ -1,0 +1,7 @@
+# requirements.txt
+flask
+flask_sqlalchemy
+flask_jwt_extended
+werkzeug
+marshmallow
+flasgger
