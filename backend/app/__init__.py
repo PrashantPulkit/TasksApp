@@ -1,10 +1,12 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
+from flasgger import Swagger
 from .config import Config
 
 db = SQLAlchemy()
 jwt = JWTManager()
+swagger = Swagger()
 
 
 def create_app():
@@ -13,6 +15,7 @@ def create_app():
 
     db.init_app(app)
     jwt.init_app(app)
+    swagger.init_app(app)
 
     from .routes.auth import auth_bp
     from .routes.tasks import tasks_bp

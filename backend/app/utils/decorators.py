@@ -2,6 +2,7 @@ from functools import wraps
 from flask_jwt_extended import get_jwt
 from flask import jsonify
 
+
 def role_required(role):
     def wrapper(fn):
         @wraps(fn)

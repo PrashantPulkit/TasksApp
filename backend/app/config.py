@@ -1,5 +1,3 @@
-import os
-
 class Config:
     SECRET_KEY = "secret"
     JWT_SECRET_KEY = "jwt-secret"

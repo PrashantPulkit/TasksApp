@@ -1,0 +1,49 @@
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from ..models.task import Task
+from ..services.task_service import TaskService
+from ..utils.decorators import role_required
+
+tasks_bp = Blueprint("tasks", __name__)
+
+
+@tasks_bp.route("/", methods=["GET"])
+@jwt_required()
+def get_tasks():
+    user_id = get_jwt_identity()
+    tasks = TaskService.get_user_tasks(user_id)
+
+    return jsonify([{ "id": t.id, "title": t.title } for t in tasks])
+
+
+@tasks_bp.route("/", methods=["POST"])
+@jwt_required()
+def create_task():
+    data = request.json
+    user_id = get_jwt_identity()
+
+    TaskService.create_task(data, user_id)
+    return jsonify({"message": "Task created"}), 201
+
+
+@tasks_bp.route("/<int:id>", methods=["PUT"])
+@jwt_required()
+def update_task(id):
+    user_id = get_jwt_identity()
+    task = Task.query.get_or_404(id)
+
+    if task.user_id != user_id:
+        return jsonify({"message": "Forbidden"}), 403
+
+    data = request.json
+    TaskService.update_task(task, data)
+    return jsonify({"message": "Updated"})
+
+
+@tasks_bp.route("/<int:id>", methods=["DELETE"])
+@jwt_required()
+@role_required("admin")
+def delete_task(id):
+    task = Task.query.get_or_404(id)
+    TaskService.delete_task(task)
+    return jsonify({"message": "Deleted"})
